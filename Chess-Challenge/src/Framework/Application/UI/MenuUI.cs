@@ -24,11 +24,14 @@ public static class MenuUI
 
         if (NextButtonInRow("MyBot vs MyBot", ref buttonPos, spacing, buttonSize))
             controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.MyBot);
-        if (NextButtonInRow("MyBot vs EvilBot", ref buttonPos, spacing, buttonSize))
-            controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.EvilBot);
-        if (NextButtonInRow("MyBot vs ReeledWarrior114Bot", ref buttonPos, spacing, buttonSize))
-            controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.ReeledWarrior114Bot);
-
+        if (NextButtonInRow("MyBot vs OldBot", ref buttonPos, spacing, buttonSize))
+            controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.OldBot);
+        if (NextButtonInRow("MyBot vs ErwanBot", ref buttonPos, spacing, buttonSize))
+            controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.ErwanBot);
+        if (NextButtonInRow("MyBot vs ReeledBot", ref buttonPos, spacing, buttonSize))
+            controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.ReeledBot);
+        if (NextButtonInRow("MyBot vs WindwallBot", ref buttonPos, spacing, buttonSize))
+            controller.StartNewBotMatch(ChallengeController.PlayerType.MyBot, ChallengeController.PlayerType.WindwallBot);
         // Page buttons
         buttonPos.Y += breakSpacing;
 

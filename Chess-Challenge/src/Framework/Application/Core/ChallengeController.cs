@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ChessChallenge.Chess;
-using ChessChallenge.Example;
 using Raylib_cs;
 using static ChessChallenge.Application.Settings;
 using static ChessChallenge.Application.ConsoleHelper;
@@ -20,8 +19,11 @@ public class ChallengeController
     {
         Human,
         MyBot,
-        EvilBot,
-        ReeledWarrior114Bot,
+        OldBot,
+        ClairvoyanceBot,
+        ErwanBot,
+        ReeledBot,
+        WindwallBot,
     }
 
     // Game state
@@ -207,8 +209,11 @@ public class ChallengeController
         return type switch
         {
             PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
-            PlayerType.EvilBot => new ChessPlayer(new EvilBot(), type, GameDurationMilliseconds),
-            PlayerType.ReeledWarrior114Bot => new ChessPlayer(new ReeledWarrior114Bot(), type, GameDurationMilliseconds),
+            PlayerType.OldBot => new ChessPlayer(new OldBot(), type, GameDurationMilliseconds),
+            PlayerType.ClairvoyanceBot => new ChessPlayer(new ClairvoyanceBot(), type, GameDurationMilliseconds),
+            PlayerType.ErwanBot => new ChessPlayer(new ErwanFNanoBot(), type, GameDurationMilliseconds),
+            PlayerType.ReeledBot => new ChessPlayer(new ReeledWarrior114Bot(), type, GameDurationMilliseconds),
+            PlayerType.WindwallBot => new ChessPlayer(new WindwallBot(), type, GameDurationMilliseconds),
             _ => new ChessPlayer(new HumanPlayer(boardUI), type),
         };
     }
@@ -423,10 +428,8 @@ public class ChallengeController
     {
         var moves = moveGenerator.GenerateMoves(board);
         foreach (var legalMove in moves)
-        {
             if (givenMove.Value == legalMove.Value)
                 return true;
-        }
 
         return false;
     }

@@ -2,7 +2,7 @@ using System;
 using ChessChallenge.API;
 using static System.Math;
 
-public class MyBot : IChessBot
+public class OldBot : IChessBot
 {
     // Piece values: none, pawn, knight, bishop, rook, queen, king
     int[] _pieceValue = { 0, 100, 310, 330, 500, 1000, 0 };
@@ -10,63 +10,37 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         var moveToPlay = board.GetLegalMoves()[0];
-        var moveToPlaySan = "?";
         var maxTimeMilliseconds = timer.MillisecondsRemaining / 30;
         var maxDepth = 0;
 
         ulong nodesVisited = 0;
         var bestEval = 0;
 
-        // for (; maxDepth < 99; ++maxDepth)
-        // {
-        var eval = AlphaBeta(3, 0, -1_000_000, 1_000_000);
+        for (; maxDepth < 99; ++maxDepth)
+        {
+            var eval = AlphaBeta(maxDepth, 0, -1_000_000, 1_000_000);
 
-        // if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
-        // break;
+            if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
+                break;
 
-        bestEval = eval;
-        // }
+            bestEval = eval;
+        }
 
         LogInfo(maxDepth);
         return moveToPlay;
-
-        int Quiesce(int alpha, int beta)
-        {
-            var standPat = EvalBoard();
-            if (standPat >= beta)
-                return beta;
-
-            if (standPat > alpha)
-                alpha = standPat;
-
-            foreach (var move in board.GetLegalMoves(true))
-            {
-                board.MakeMove(move);
-                var score = -Quiesce(-beta, -alpha);
-                board.UndoMove(move);
-
-                if (score >= beta)
-                    return beta;
-
-                if (score > alpha)
-                    alpha = score;
-            }
-
-            return alpha;
-        }
 
         int AlphaBeta(int depth, int ply, int alpha, int beta)
         {
             ++nodesVisited;
 
+            if (board.IsInCheckmate())
+                return -999_999;
+
+            if (board.IsDraw())
+                return -10;
+
             if (depth == 0)
-                return Quiesce(alpha, beta);
-
-            var moves = board.GetLegalMoves();
-
-            // Checkmate/Stalemate
-            if (moves.Length == 0)
-                return board.IsInCheck() ? -999_999 : 0;
+                return EvalBoard();
 
             foreach (var move in board.GetLegalMoves())
             {
@@ -77,8 +51,6 @@ public class MyBot : IChessBot
                 var score = -AlphaBeta(depth - 1, ply + 1, -beta, -alpha);
                 board.UndoMove(move);
 
-                Console.WriteLine($"({ply}) {move.ToSAN(board.board)} {score}");
-
                 if (score >= beta)
                     return beta;
 
@@ -87,10 +59,7 @@ public class MyBot : IChessBot
                     alpha = score;
 
                     if (ply == 0)
-                    {
                         moveToPlay = move;
-                        moveToPlaySan = move.ToSAN(board.board);
-                    }
                 }
             }
 
@@ -114,7 +83,7 @@ public class MyBot : IChessBot
 
             var depthString = $"\x1b[1m\u001b[38;2;251;96;27mdepth {chosenDepth} ply\x1b[0m".PadRight(38);
 
-            var bestMoveString = $"\x1b[0mbestmove\x1b[32m {moveToPlaySan}\x1b[37m".PadRight(31);
+            var bestMoveString = $"\x1b[0mbestmove\x1b[32m {moveToPlay}\x1b[37m".PadRight(38);
 
             var bestEvalString = $"\x1b[37meval\x1b[36m {bestEval:0.00} \x1b[37m".PadRight(29);
 
