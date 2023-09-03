@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+dotnet build ../Cli/Cli.csproj -c Release

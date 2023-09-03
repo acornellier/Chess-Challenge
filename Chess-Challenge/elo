@@ -1,0 +1,23 @@
+#!/bin/zsh
+
+# Check if $1 is set, and if not, set it to "Dev" by default
+if [ -z "$1" ]; then
+    target="Dev"
+else
+    target="$1"
+fi
+
+/Users/alex/git/cutechess/cutechess-cli \
+-engine conf=MyBot \
+-engine conf=$target \
+-each tc=0/5+0.05 \
+-maxmoves 1000 \
+-games 2 \
+-repeat \
+-resultformat wide2 \
+-ratinginterval 10 \
+-rounds 50000 \
+-concurrency 12 \
+-tournament gauntlet \
+-openings file="./UHO_XXL_+1.00_+1.29.epd" format=epd \
+-pgnout out.pgn 

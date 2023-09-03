@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+# Check if $1 is set, and if not, set it to "Dev" by default
+if [ -z "$1" ]; then
+    target="Dev"
+else
+    target="$1"
+fi
+
+mv ../Cli/bin/Release ../Cli/bin/$target

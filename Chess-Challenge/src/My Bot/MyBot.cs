@@ -36,42 +36,26 @@ public class MyBot : IChessBot
         LogInfo(maxDepth);
         return bestMoveRoot;
 
-        int Quiesce(int alpha, int beta)
-        {
-            var standPat = EvalBoard();
-            if (standPat >= beta)
-                return beta;
-
-            if (standPat > alpha)
-                alpha = standPat;
-
-            foreach (var move in board.GetLegalMoves(true))
-            {
-                board.MakeMove(move);
-                var score = -Quiesce(-beta, -alpha);
-                board.UndoMove(move);
-
-                if (score >= beta)
-                    return beta;
-
-                if (score > alpha)
-                    alpha = score;
-            }
-
-            return alpha;
-        }
-
         int AlphaBeta(int depth, int ply, int alpha, int beta)
         {
             ++nodesVisited;
 
-            if (depth == 0)
-                return Quiesce(alpha, beta);
+            var qSearch = depth <= 0;
 
-            var moves = board.GetLegalMoves();
+            if (qSearch)
+            {
+                var eval = EvalBoard();
+                if (eval >= beta)
+                    return beta;
+
+                if (eval > alpha)
+                    alpha = eval;
+            }
+
+            var moves = board.GetLegalMoves(qSearch);
 
             // Checkmate/Stalemate
-            if (moves.Length == 0)
+            if (moves.Length == 0 && !qSearch)
                 return board.IsInCheck() ? -999_999 : 0;
 
             foreach (var move in board.GetLegalMoves())
@@ -82,9 +66,6 @@ public class MyBot : IChessBot
                 board.MakeMove(move);
                 var score = -AlphaBeta(depth - 1, ply + 1, -beta, -alpha);
                 board.UndoMove(move);
-
-                if (ply <= 1)
-                    Console.WriteLine($"({ply}) {move.ToSAN(board.board)} {score}");
 
                 if (score >= beta)
                     return beta;
