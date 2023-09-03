@@ -20,7 +20,6 @@ public class ChallengeController
         Human,
         MyBot,
         OldBot,
-        ClairvoyanceBot,
         ErwanBot,
         ReeledBot,
         WindwallBot,
@@ -210,7 +209,6 @@ public class ChallengeController
         {
             PlayerType.MyBot => new ChessPlayer(new MyBot(), type, GameDurationMilliseconds),
             PlayerType.OldBot => new ChessPlayer(new OldBot(), type, GameDurationMilliseconds),
-            PlayerType.ClairvoyanceBot => new ChessPlayer(new ClairvoyanceBot(), type, GameDurationMilliseconds),
             PlayerType.ErwanBot => new ChessPlayer(new ErwanFNanoBot(), type, GameDurationMilliseconds),
             PlayerType.ReeledBot => new ChessPlayer(new ReeledWarrior114Bot(), type, GameDurationMilliseconds),
             PlayerType.WindwallBot => new ChessPlayer(new WindwallBot(), type, GameDurationMilliseconds),

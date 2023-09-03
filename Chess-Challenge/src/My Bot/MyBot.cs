@@ -6,29 +6,35 @@ public class MyBot : IChessBot
 {
     // Piece values: none, pawn, knight, bishop, rook, queen, king
     int[] _pieceValue = { 0, 100, 310, 330, 500, 1000, 0 };
+    Move _bestMoveIterative;
 
     public Move Think(Board board, Timer timer)
     {
-        var moveToPlay = board.GetLegalMoves()[0];
-        var moveToPlaySan = "?";
+        var bestMoveRoot = board.GetLegalMoves()[0];
         var maxTimeMilliseconds = timer.MillisecondsRemaining / 30;
         var maxDepth = 0;
 
+        var bestMoveRootSan = "?";
+        var bestMoveIterativeSan = "?";
+
         ulong nodesVisited = 0;
-        var bestEval = 0;
+        var bestEvalRoot = 0;
+        var bestEvalIterative = 0;
 
-        // for (; maxDepth < 99; ++maxDepth)
-        // {
-        var eval = AlphaBeta(3, 0, -1_000_000, 1_000_000);
+        for (; maxDepth < 99; ++maxDepth)
+        {
+            AlphaBeta(maxDepth, 0, -1_000_000, 1_000_000);
 
-        // if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
-        // break;
+            if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
+                break;
 
-        bestEval = eval;
-        // }
+            bestMoveRoot = _bestMoveIterative;
+            bestMoveRootSan = bestMoveIterativeSan;
+            bestEvalRoot = bestEvalIterative;
+        }
 
         LogInfo(maxDepth);
-        return moveToPlay;
+        return bestMoveRoot;
 
         int Quiesce(int alpha, int beta)
         {
@@ -71,13 +77,14 @@ public class MyBot : IChessBot
             foreach (var move in board.GetLegalMoves())
             {
                 if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
-                    return 999_999;
+                    return 888_888;
 
                 board.MakeMove(move);
                 var score = -AlphaBeta(depth - 1, ply + 1, -beta, -alpha);
                 board.UndoMove(move);
 
-                Console.WriteLine($"({ply}) {move.ToSAN(board.board)} {score}");
+                if (ply <= 1)
+                    Console.WriteLine($"({ply}) {move.ToSAN(board.board)} {score}");
 
                 if (score >= beta)
                     return beta;
@@ -88,8 +95,9 @@ public class MyBot : IChessBot
 
                     if (ply == 0)
                     {
-                        moveToPlay = move;
-                        moveToPlaySan = move.ToSAN(board.board);
+                        _bestMoveIterative = move;
+                        bestMoveIterativeSan = move.ToSAN(board.board);
+                        bestEvalIterative = score;
                     }
                 }
             }
@@ -114,9 +122,9 @@ public class MyBot : IChessBot
 
             var depthString = $"\x1b[1m\u001b[38;2;251;96;27mdepth {chosenDepth} ply\x1b[0m".PadRight(38);
 
-            var bestMoveString = $"\x1b[0mbestmove\x1b[32m {moveToPlaySan}\x1b[37m".PadRight(31);
+            var bestMoveString = $"\x1b[0mbestmove\x1b[32m {bestMoveRootSan}\x1b[37m".PadRight(31);
 
-            var bestEvalString = $"\x1b[37meval\x1b[36m {bestEval:0.00} \x1b[37m".PadRight(29);
+            var bestEvalString = $"\x1b[37meval\x1b[36m {bestEvalRoot:0.00} \x1b[37m".PadRight(29);
 
             var nodesString = $"\x1b[37mnodes\x1b[35m {nodesVisited}\x1b[37m".PadRight(33);
 
