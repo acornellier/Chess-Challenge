@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ChessChallenge.API;
 using static System.Math;
 
@@ -12,7 +13,7 @@ public class MyBot : IChessBot
     {
         var bestMoveRoot = board.GetLegalMoves()[0];
         var maxTimeMilliseconds = timer.MillisecondsRemaining / 30;
-        var maxDepth = 0;
+        var maxDepth = 2;
 
         var bestMoveRootSan = "?";
         var bestMoveIterativeSan = "?";
@@ -58,7 +59,9 @@ public class MyBot : IChessBot
             if (moves.Length == 0 && !qSearch)
                 return board.IsInCheck() ? -999_999 : 0;
 
-            foreach (var move in board.GetLegalMoves())
+            moves = moves.OrderByDescending(move => move.CapturePieceType - move.MovePieceType).ToArray();
+
+            foreach (var move in moves)
             {
                 if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
                     return 888_888;

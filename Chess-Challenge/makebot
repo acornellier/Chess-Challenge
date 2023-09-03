@@ -7,4 +7,5 @@ else
     target="$1"
 fi
 
+rm -rf ../Cli/bin/$target
 mv ../Cli/bin/Release ../Cli/bin/$target
