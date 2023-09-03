@@ -24,7 +24,7 @@ public class MyBot : IChessBot
 
         for (; maxDepth < 99; ++maxDepth)
         {
-            AlphaBeta(maxDepth, 0, -1_000_000, 1_000_000);
+            Pvs(maxDepth, 0, -1_000_000, 1_000_000);
 
             if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
                 break;
@@ -37,7 +37,7 @@ public class MyBot : IChessBot
         LogInfo(maxDepth);
         return bestMoveRoot;
 
-        int AlphaBeta(int depth, int ply, int alpha, int beta)
+        int Pvs(int depth, int ply, int alpha, int beta)
         {
             ++nodesVisited;
 
@@ -61,13 +61,22 @@ public class MyBot : IChessBot
 
             moves = moves.OrderByDescending(move => move.CapturePieceType - move.MovePieceType).ToArray();
 
+            var pvs = true;
             foreach (var move in moves)
             {
                 if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
                     return 888_888;
 
                 board.MakeMove(move);
-                var score = -AlphaBeta(depth - 1, ply + 1, -beta, -alpha);
+                int score;
+                if (pvs)
+                     score = -Pvs(depth - 1, ply + 1, -beta, -alpha);
+                else
+                {
+                    score = -Pvs(depth - 1, ply + 1, -alpha - 1, -alpha);
+                    if (score > alpha)
+                        score = -Pvs(depth - 1, ply + 1, -beta, -alpha);
+                }
                 board.UndoMove(move);
 
                 if (score >= beta)
@@ -76,6 +85,7 @@ public class MyBot : IChessBot
                 if (score > alpha)
                 {
                     alpha = score;
+                    pvs = false;
 
                     if (ply == 0)
                     {
