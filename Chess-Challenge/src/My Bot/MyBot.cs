@@ -1,8 +1,12 @@
-using System;
+// #define STATS
+
 using System.Linq;
 using System.Numerics;
 using ChessChallenge.API;
+#if STATS
 using static System.Math;
+using System;
+#endif
 
 public class MyBot : IChessBot
 {
@@ -50,12 +54,13 @@ public class MyBot : IChessBot
         var maxTimeMilliseconds = timer.MillisecondsRemaining / 30;
         var maxDepth = 2;
 
+#if STATS
         var bestMoveRootSan = "?";
         var bestMoveIterativeSan = "?";
-
         ulong nodesVisited = 0;
         var bestEvalRoot = 0;
         var bestEvalIterative = 0;
+#endif
 
         for (; maxDepth < 99; ++maxDepth)
         {
@@ -65,22 +70,29 @@ public class MyBot : IChessBot
                 break;
 
             bestMoveRoot = bestMoveIterative;
+
+#if STATS
             bestMoveRootSan = bestMoveIterativeSan;
             bestEvalRoot = bestEvalIterative;
+#endif
         }
 
+#if STATS
         LogInfo(maxDepth);
+#endif
         return bestMoveRoot;
 
         int Pvs(int depth, int ply, int alpha, int beta)
         {
+#if STATS
             ++nodesVisited;
+#endif
 
             var qSearch = depth <= 0;
 
             if (qSearch)
             {
-                var eval = EvalBoard(ply == 0);
+                var eval = EvalBoard();
                 if (eval >= beta)
                     return beta;
 
@@ -128,8 +140,10 @@ public class MyBot : IChessBot
                     if (ply == 0)
                     {
                         bestMoveIterative = move;
+#if STATS
                         bestMoveIterativeSan = move.ToSAN(board.board);
                         bestEvalIterative = score;
+#endif
                     }
                 }
             }
@@ -137,7 +151,7 @@ public class MyBot : IChessBot
             return alpha;
         }
 
-        int EvalBoard(bool log)
+        int EvalBoard()
         {
             int middlegame = 0, endgame = 0, gamephase = 0, sideToMove = 2, piece;
 
@@ -155,13 +169,11 @@ public class MyBot : IChessBot
                 endgame += _unpackedPestoTables[square][piece + 6];
             }
 
-            if (log)
-                Console.WriteLine($"{middlegame} {endgame} {gamephase}");
-
             // Tempo bonus to help with aspiration windows
             return (middlegame * gamephase + endgame * (24 - gamephase)) / 24 * (board.IsWhiteToMove ? 1 : -1) + gamephase / 2;
         }
 
+#if STATS
         void LogInfo(int chosenDepth)
         {
             var timeString = $"\x1b[37mtime\u001b[38;5;214m {timer.MillisecondsElapsedThisTurn}ms\x1b[37m\x1b[0m".PadRight(38);
@@ -179,5 +191,6 @@ public class MyBot : IChessBot
 
             Console.WriteLine(string.Join(" ", depthString, timeString, bestMoveString, bestEvalString, nodesString, nodesPerSecString));
         }
+#endif
     }
 }
