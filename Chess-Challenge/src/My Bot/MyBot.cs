@@ -13,15 +13,10 @@ public class MyBot : IChessBot
     // Pesto from TyrantBot
     // Piece values: none, pawn, knight, bishop, rook, queen, king
     // Pawn, Knight, Bishop, Rook, Queen, King 
-    static readonly short[] _pieceValues =
-    {
-        82, 337, 365, 477, 1025, 0, // Middlegame
-        94, 281, 297, 512, 936, 0, // Endgame
-    };
 
     static int _searchMaxTime;
 
-    static readonly int[][] _unpackedPestoTables = new[]
+    static int[][] _unpackedPestoTables = new[]
     {
         63746705523041458768562654720m, 71818693703096985528394040064m, 75532537544690978830456252672m, 75536154932036771593352371712m,
         76774085526445040292133284352m, 3110608541636285947269332480m, 936945638387574698250991104m, 75531285965747665584902616832m,
@@ -41,9 +36,18 @@ public class MyBot : IChessBot
         73655004947793353634062267392m, 76417372019396591550492896512m, 74568981255592060493492515584m, 70529879645288096380279255040m,
     }.Select(
         packedTable =>
-            new BigInteger(packedTable).ToByteArray().Take(12)
+            new BigInteger(packedTable)
+                .ToByteArray()
+                .Take(12)
                 // Using search max time since it's an integer than initializes to zero and is assgined before being used again 
-                .Select(square => (int)((sbyte)square * 1.461) + _pieceValues[_searchMaxTime++ % 12])
+                .Select(
+                    square => (int)((sbyte)square * 1.461) +
+                              new short[]
+                              {
+                                  82, 337, 365, 477, 1025, 0, // Middlegame
+                                  94, 281, 297, 512, 936, 0, // Endgame
+                              }[_searchMaxTime++ % 12]
+                )
                 .ToArray()
     ).ToArray();
 
@@ -51,7 +55,7 @@ public class MyBot : IChessBot
     {
         var bestMoveIterative = board.GetLegalMoves()[0];
         var bestMoveRoot = bestMoveIterative;
-        var maxTimeMilliseconds = timer.MillisecondsRemaining / 30;
+        _searchMaxTime = timer.MillisecondsRemaining / 30;
         var maxDepth = 2;
 
 #if STATS
@@ -66,7 +70,7 @@ public class MyBot : IChessBot
         {
             Pvs(maxDepth, 0, -1_000_000, 1_000_000);
 
-            if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
+            if (timer.MillisecondsElapsedThisTurn >= _searchMaxTime)
                 break;
 
             bestMoveRoot = bestMoveIterative;
@@ -111,7 +115,7 @@ public class MyBot : IChessBot
             var pvs = true;
             foreach (var move in moves)
             {
-                if (timer.MillisecondsElapsedThisTurn >= maxTimeMilliseconds)
+                if (timer.MillisecondsElapsedThisTurn >= _searchMaxTime)
                     return 888_888;
 
                 board.MakeMove(move);
@@ -153,9 +157,9 @@ public class MyBot : IChessBot
 
         int EvalBoard()
         {
-            int middlegame = 0, endgame = 0, gamephase = 0, sideToMove = 2, piece;
+            int midgame = 0, endgame = 0, gamephase = 0, sideToMove = 2, piece;
 
-            for (; --sideToMove >= 0; middlegame = -middlegame, endgame = -endgame)
+            for (; --sideToMove >= 0; midgame = -midgame, endgame = -endgame)
             for (piece = -1; ++piece < 6;)
             for (var mask = board.GetPieceBitboard((PieceType)piece + 1, sideToMove > 0); mask != 0;)
             {
@@ -165,12 +169,12 @@ public class MyBot : IChessBot
 
                 // Material and square evaluation
                 var square = BitboardHelper.ClearAndGetIndexOfLSB(ref mask) ^ (56 * sideToMove);
-                middlegame += _unpackedPestoTables[square][piece];
+                midgame += _unpackedPestoTables[square][piece];
                 endgame += _unpackedPestoTables[square][piece + 6];
             }
 
             // Tempo bonus to help with aspiration windows
-            return (middlegame * gamephase + endgame * (24 - gamephase)) / 24 * (board.IsWhiteToMove ? 1 : -1) + gamephase / 2;
+            return (midgame * gamephase + endgame * (24 - gamephase)) / 24 * (board.IsWhiteToMove ? 1 : -1) + gamephase / 2;
         }
 
 #if STATS
